@@ -1,5 +1,6 @@
 import csv
 import re
+import locale
 from datetime import datetime
 from hashlib import md5
 
@@ -22,11 +23,13 @@ KNOWN_COLUMNS = [
 ]
 
 TRANSACTION_TYPES = {
-   "To ": "XFER",
-   "From ": "XFER",
-   "Cash at ": "ATM",
-   "Top-Up by": "DEP",
+   "A ": "XFER",
+   "Da ": "XFER",
+   "Contanti": "ATM",
+   "Fondi aggiunti mediante": "DEP",
    "Payment from": "DEP",
+   "EUR venduto da BTC" : "XFER",
+   "EUR venduto da XRP" : "XFER",
 }
 
 
@@ -34,9 +37,11 @@ class RevolutCSVStatementParser(CsvStatementParser):
 
     __slots__ = 'columns'
 
-    date_format = "%b %d, %Y"
-
+    date_format = "%b %d %Y"
+   
+    
     def parse_datetime(self, value):
+        
         try:
             parsed_datetime = datetime.strptime(value, "%B %d")
             parsed_datetime = datetime(datetime.now().year, parsed_datetime.month, parsed_datetime.day)
@@ -62,8 +67,8 @@ class RevolutCSVStatementParser(CsvStatementParser):
             return super().parse_value(value, field)
 
     def parse_payee_memo(self, value):
-        if 'FX Rate' in value:
-            limit = value.find('FX Rate')
+        if 'Tasso FX' in value:
+            limit = value.find('Tasso FX')
             payee = self.parse_value(value[0:limit], 'payee')
             memo = self.parse_value(value[limit:], 'memo')
             return payee, memo
@@ -107,7 +112,7 @@ class RevolutCSVStatementParser(CsvStatementParser):
         stmt_line.trntype = trntype
         if trntype == 'POS':
             stmt_line.payee, stmt_line.memo = self.parse_payee_memo(reference)
-        elif reference.startswith('Cash at '):
+        elif reference.startswith('Contanti'):
             stmt_line.payee, stmt_line.memo = self.parse_payee_memo(
                 reference[8:])
         elif reference.startswith('To ') or reference.startswith('From '):
@@ -134,7 +139,7 @@ class RevolutCSVStatementParser(CsvStatementParser):
 
 
 class RevolutPlugin(Plugin):
-    """Revolut"""
+    """Revolut-italian"""
 
     def get_parser(self, fin):
         f = open(fin, "r", encoding='utf-8')
@@ -164,6 +169,9 @@ class RevolutPlugin(Plugin):
                 parser.statement.currency = ccy
             if 'date_format' in self.settings:
                 parser.date_format = self.settings['date_format']
+            if 'locale' in self.settings:
+                parser.localeValue = self.settings['locale']
+                locale.setlocale(locale.LC_ALL,parser.localeValue)  
             parser.statement.bank_id = self.settings.get('bank', 'Revolut')
             return parser
 

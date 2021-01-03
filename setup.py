@@ -9,14 +9,14 @@ from distutils.core import setup
 
 import unittest
 
-version = "1.6.0"
+version = "1.0.0"
 
-setup(name='ofxstatement-revolut',
+setup(name='ofxstatement-revolut-italian',
       version=version,
-      author="Miku Laitinen",
-      author_email="miku@avoin.systems",
-      url="https://github.com/mlaitinen/ofxstatement-revolut",
-      description=("Bank statement parser for Revolut"),
+      author="Donato Chiuchiolo",
+      author_email="donato.chiuchiolo@gmail.com",
+      url="https://github.com/chiuky/ofxstatement-revolut",
+      description=("Bank statement parser for Revolut using locale it_IT"),
       long_description=open("README.md").read() + "\n\n" +
                        open(os.path.join("docs", "HISTORY.txt")).read(),
       long_description_content_type='text/markdown',
@@ -36,7 +36,7 @@ setup(name='ofxstatement-revolut',
       namespace_packages=["ofxstatement", "ofxstatement.plugins"],
       entry_points={
           'ofxstatement': [
-              'revolut = ofxstatement.plugins.revolut:RevolutPlugin',
+              'revolut-italian = ofxstatement.plugins.revolut:RevolutPlugin',
           ]
       },
       install_requires=['ofxstatement'],
